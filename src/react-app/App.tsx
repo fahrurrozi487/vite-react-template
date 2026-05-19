@@ -1,66 +1,72 @@
-// src/App.tsx
-
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import cloudflareLogo from "./assets/Cloudflare_Logo.svg";
-import honoLogo from "./assets/hono.svg";
+import { useEffect, useState } from "react";
 import "./App.css";
 
-function App() {
-	const [count, setCount] = useState(0);
-	const [name, setName] = useState("unknown");
+type TouchData = {
+  device: string;
+  event: string;
+  gpio: number;
+  touchValue: number;
+  createdAt: string;
+};
 
-	return (
-		<>
-			<div>
-				<a href="https://vite.dev" target="_blank">
-					<img src={viteLogo} className="logo" alt="Vite logo" />
-				</a>
-				<a href="https://react.dev" target="_blank">
-					<img src={reactLogo} className="logo react" alt="React logo" />
-				</a>
-				<a href="https://hono.dev/" target="_blank">
-					<img src={honoLogo} className="logo cloudflare" alt="Hono logo" />
-				</a>
-				<a href="https://workers.cloudflare.com/" target="_blank">
-					<img
-						src={cloudflareLogo}
-						className="logo cloudflare"
-						alt="Cloudflare logo"
-					/>
-				</a>
-			</div>
-			<h1>Vite + React + Hono + Cloudflare</h1>
-			<div className="card">
-				<button
-					onClick={() => setCount((count) => count + 1)}
-					aria-label="increment"
-				>
-					count is {count}
-				</button>
-				<p>
-					Edit <code>src/App.tsx</code> and save to test HMR
-				</p>
-			</div>
-			<div className="card">
-				<button
-					onClick={() => {
-						fetch("/api/")
-							.then((res) => res.json() as Promise<{ name: string }>)
-							.then((data) => setName(data.name));
-					}}
-					aria-label="get name"
-				>
-					Name from API is: {name}
-				</button>
-				<p>
-					Edit <code>worker/index.ts</code> to change the name
-				</p>
-			</div>
-			<p className="read-the-docs">Click on the logos to learn more</p>
-		</>
-	);
+function App() {
+  const [data, setData] = useState<TouchData | null>(null);
+  const [status, setStatus] = useState("Menunggu data ESP32...");
+
+  async function loadLatestTouch() {
+    try {
+      const response = await fetch("/api/touch/latest");
+      const result = await response.json();
+
+      if (result.success) {
+        setData(result.data);
+        setStatus("Data diterima");
+      } else {
+        setStatus(result.message);
+      }
+    } catch (error) {
+      setStatus("Gagal mengambil data dari API");
+    }
+  }
+
+  useEffect(() => {
+    loadLatestTouch();
+
+    const interval = setInterval(() => {
+      loadLatestTouch();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <main className="container">
+      <div className="card">
+        <h1>ESP32-S3 Touch Dashboard</h1>
+        <p className="status">{status}</p>
+
+        <div className="data-box">
+          <p>
+            <strong>Device:</strong> {data?.device ?? "-"}
+          </p>
+          <p>
+            <strong>Event:</strong> {data?.event ?? "-"}
+          </p>
+          <p>
+            <strong>GPIO:</strong> {data?.gpio ?? "-"}
+          </p>
+          <p>
+            <strong>Touch Value:</strong> {data?.touchValue ?? "-"}
+          </p>
+          <p>
+            <strong>Waktu:</strong> {data?.createdAt ?? "-"}
+          </p>
+        </div>
+
+        <button onClick={loadLatestTouch}>Refresh Manual</button>
+      </div>
+    </main>
+  );
 }
 
 export default App;
