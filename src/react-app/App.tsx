@@ -4,6 +4,7 @@ import "./App.css";
 type TouchData = {
   device: string;
   event: string;
+  sensorName: string;
   gpio: number;
   touchValue: number;
   createdAt: string;
@@ -51,6 +52,9 @@ function App() {
           </p>
           <p>
             <strong>Event:</strong> {data?.event ?? "-"}
+          </p>
+          <p>
+            <strong>Sensor:</strong> {data?.sensorName ?? "-"}
           </p>
           <p>
             <strong>GPIO:</strong> {data?.gpio ?? "-"}
