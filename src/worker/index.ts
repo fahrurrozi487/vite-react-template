@@ -28,13 +28,14 @@ app.post("/api/touch", async (c) => {
 
   const body = await c.req.json();
 
-  const data = {
-    device: body.device ?? "esp32-s3",
-    event: body.event ?? "touch",
-    gpio: body.gpio ?? null,
-    touchValue: body.touchValue ?? null,
-    createdAt: new Date().toISOString(),
-  };
+const data = {
+  device: body.device ?? "esp32-s3",
+  event: body.event ?? "touch",
+  sensorName: body.sensorName ?? "unknown_sensor",
+  gpio: body.gpio ?? null,
+  touchValue: body.touchValue ?? null,
+  createdAt: new Date().toISOString(),
+};
 
   await c.env.TOUCH_KV.put("latest_touch", JSON.stringify(data));
 
